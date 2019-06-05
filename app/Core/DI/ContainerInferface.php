@@ -11,4 +11,6 @@ interface ContainerInferface
     public function share($key, callable $value);
 
     public function has($key);
+
+    public function registerProvider($provider);
 }

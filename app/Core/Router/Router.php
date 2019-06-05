@@ -3,6 +3,7 @@
 namespace App\Core\Router;
 
 use App\Core\Exceptions\MethodNotSupportedException;
+use App\Core\Exceptions\RouteNotFoundException;
 
 class Router 
 {
@@ -21,7 +22,7 @@ class Router
         $this->routes = new RouteCollection;
     }
 
-    public function addRoute($uri, callable $callable, $methods = ['GET'])
+    public function addRoute($uri, $callable, $methods = ['GET'])
     {
         $this->routes->add(new Route($uri, $callable, $methods));
     }
@@ -43,21 +44,23 @@ class Router
 
     public function dispatch(string $uri, string $method)
     {
-        if($route = $this->routes->getByUri($uri))
-        {
-            
-            if(!$route->allows($method)) {
+        if(strpos($uri, '?') !== false) {
 
+            $uri = substr($uri, 0, (strpos($uri, '?')));
+        }
+
+        $route = $route = $this->routes->getByUri($uri) ?? $this->resolveByRegex($uri);
+
+        
+        if($route) {
+
+            if(!$route->allows($method))
                 throw new MethodNotSupportedException('That request method is not supported.');
-            }
+
+            return $route;
         }
 
-        if($route = $this->resolveByRegex($uri)) {
-
-            
-        }
-
-        return $route;
+        throw new RouteNotFoundException(sprintf('Route %s could not be found.', $uri));
         
     }
 

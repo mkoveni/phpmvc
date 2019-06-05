@@ -1,36 +1,23 @@
 <?php
 use App\Core\App;
-use App\Core\Router\Router;
-use App\Core\Router\RouteCollection;
-use App\Core\Router\Route;
+
+
+use App\Core\Http\RequestInterface;
+use App\Core\Facades\Router;
 
 require __DIR__ .'/autoload.php';
 
 $app = new App;
 
-$uri = '/user/2/posts/2019';
+$app->get('/users', function(RequestInterface $requestInterface){
 
-$c = $app->getContainer();
-
-$c->share(Router::class, function(){
-
-    return new Router;
+    return $requestInterface->httpUserAgent;
 });
 
-$routes = new RouteCollection;
+Router::get('users');
 
-// $routes->add(new Route('/users/all', function(){
-//     echo 'This Life is worth living.';
-// }));
-
-$app->get('/user/{id}/posts/{year:[0-9]+}', function(int $id, int $year){
-    var_dump($id, $year);
-    return 'testing';
-});
-
-$app->get('/users', function(){
-    return 'users';
-});
+$app->get('/home', [\App\Http\Controllers\HomeController::class, 'index']);
+$app->get('/welcome', [\App\Http\Controllers\HomeController::class, 'welcome']);
 
 
 

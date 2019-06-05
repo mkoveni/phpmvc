@@ -51,6 +51,6 @@ class Route
 
     public function getData() 
     {
-        return $this->data;
+        return $this->data ?? [];
     }
 }

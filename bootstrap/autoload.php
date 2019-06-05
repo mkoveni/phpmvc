@@ -8,7 +8,13 @@ $autoloadFile = $root . 'autoload.json';
 
 if(file_exists($autoloadFile))
 {
-    $namespaces = json_decode(file_get_contents($autoloadFile), true)['psr4'] ?? [];
+    $autoload =  json_decode(file_get_contents($autoloadFile), true);
+
+    $namespaces = $autoload['psr4'] ?? [];
+
+    $files = $autoload['files'] ?? [];
+
+    
 
     foreach($namespaces as $namespace => $dirs)
     {
@@ -39,5 +45,14 @@ if(file_exists($autoloadFile))
                 return false;
             }
         });
+    }
+
+
+    foreach($files as $file) {
+
+        if(file_exists($root . $file)) {
+
+            require_once $root . $file;
+        }
     }
 }

@@ -49,7 +49,7 @@ class Collection implements \Countable, \IteratorAggregate
 
     public function where(callable $callable)
     {
-       return Arr::where($this->items, $callable);
+       return new static(Arr::where($this->items, $callable));
     }
 
     public function map(callable $callable)

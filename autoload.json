@@ -1,5 +1,8 @@
 {
     "psr4": {
         "App\\": "app"
-    }
+    },
+    "files": [
+        "app/Core/Helpers.php"
+    ]
 }

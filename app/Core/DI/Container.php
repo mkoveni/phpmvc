@@ -3,9 +3,13 @@
 namespace App\Core\DI;
 
 use App\Core\Exceptions\DependencyNotFoundException;
+use App\Core\Providers\AbtractServiceProvider;
+use App\Core\Exceptions\InvalidProviderException;
 
 class Container implements ContainerInferface
 {
+    private static $instance;
+
     protected $items = [];
 
     public function get($key)
@@ -95,5 +99,36 @@ class Container implements ContainerInferface
         }
 
         return $this->get($dependency->getClass()->getName());
+    }
+
+    public function registerProvider($provider)
+    {
+        if(is_string($provider)) {
+
+            if(class_exists($provider) && is_subclass_of($provider, AbtractServiceProvider::class)) {
+
+                (new $provider)->register();
+
+                return;
+            }
+        }
+        else if(is_object($provider) && $provider instanceOf AbtractServiceProvider ) {
+            $provider->register();
+
+            return;
+        }
+
+        throw new InvalidProviderException(is_object($provider) ? $provider : new $provider);
+    }
+
+
+    public static function getInstance()
+    {
+        if(!static::$instance) {
+            
+            static::$instance = new static;
+        }
+
+        return static::$instance;
     }
 }
