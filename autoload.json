@@ -3,7 +3,9 @@
         
         "Mkoveni\\Lani\\": "lani",
 
-        "App\\": "app"
+        "App\\": "app",
+
+        "Test\\": "test"
     },
     "files": [
         "app/Core/Helpers.php"
