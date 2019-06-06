@@ -8,7 +8,9 @@ abstract class Facade
 
     public static function __callStatic($name, $arguments)
     {
-        var_dump(static::getFacadeInstance());
+        $instance = static::getFacadeInstance();
+
+        return $instance->$name(...$arguments);
     }
 
     public static function getFacadeInstance()

@@ -4,12 +4,10 @@ namespace App\Core;
 
 use App\Core\DI\Container;
 use App\Core\Router\Route;
-use App\Core\Reflection\RFunction;
 use App\Core\DI\Dependency;
-use App\Core\Reflection\RFactory;
-use App\Core\Reflection\AbstractReflector;
+use App\Core\Router\Router;
 use App\Core\Exceptions\ClassNotFoundException;
-use App\Core\Facades\Router;
+use App\Core\Reflection\{RFactory, AbstractReflector, RClass};
 
 class App 
 {
@@ -19,8 +17,8 @@ class App
         \App\Core\Providers\AppServiceProvider::class
     ];
 
-    protected $facades = [
-        Router::class
+    protected $aliases = [
+        \App\Core\Facades\Router::class
     ];
 
     protected $settings = [
@@ -39,19 +37,14 @@ class App
             return $this->settings;
         });
 
-        Router::setContainer($this->container);
-
         $this->registerProviders();
+
+        $this->registerAliases();
 
     }
     public function getContainer()
     {
         return $this->container;
-    }
-
-    public function get($uri, $callable)
-    {
-        $this->container->get(Router::class)->addRoute($uri, $callable, ['GET', 'POST']);
     }
 
     protected function registerProviders()
@@ -123,6 +116,21 @@ class App
     public function resolveFromContainer(Dependency $dependency)
     {
         return $this->container->get($dependency->getClass());
+    }
+
+    public function registerAliases()
+    {
+        foreach($this->aliases as $alias)
+        {
+            $reflector = $this->getReflector('class', $alias);
+
+            if($reflector instanceof RClass) {
+
+                $alias::setContainer($this->container);
+
+                class_alias($alias, $reflector->getShortName());
+            }
+        }
     }
 
     /**

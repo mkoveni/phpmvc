@@ -13,7 +13,7 @@ class RClass extends AbstractReflector
     {
         $reflector = $this->reflector;
 
-        if ($reflector instanceof \ReflectionClass) {
+        if ($reflector instanceof \ReflectionClass && $reflector->getConstructor()) {
 
             $this->arguments = collect($reflector->getConstructor()->getParameters())
                 ->map(function (\ReflectionParameter $param) {
@@ -25,12 +25,12 @@ class RClass extends AbstractReflector
                     }
                     
                     return $newParam;
-                });
+            });
         }
     }
 
-    public function invoke(array $paramaters)
+    public function getShortName()
     {
-        return $this->reflector->invoke($paramaters);
+        return $this->reflector->getShortName();
     }
 }

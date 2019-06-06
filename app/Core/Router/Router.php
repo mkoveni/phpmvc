@@ -22,10 +22,6 @@ class Router
         $this->routes = new RouteCollection;
     }
 
-    public function addRoute($uri, $callable, $methods = ['GET'])
-    {
-        $this->routes->add(new Route($uri, $callable, $methods));
-    }
 
     public function getRoutes()
     {
@@ -101,5 +97,45 @@ class Router
         }
 
         return '('. substr($matches[1], 1) .')';
+    }
+
+
+    private function addRoute($uri, $callable, $methods = ['GET'])
+    {
+        $route =  new Route($uri, $callable, $methods);
+
+        $this->routes->add($route);
+
+        return $route;
+    }
+
+    public function get($uri, $callable)
+    {
+        return $this->addRoute($uri, $callable, ['GET', 'HEAD']);
+    }
+
+    public function post($uri, $callable)
+    {
+        return $this->addRoute($uri, $callable, ['POST']);
+    }
+
+    public function patch($uri, $callable)
+    {
+        return $this->addRoute($uri, $callable, ['PATCH']);
+    }
+
+    public function put($uri, $callable)
+    {
+        return $this->addRoute($uri, $callable, ['PUT']);
+    }
+
+    public function delete($uri, $callable)
+    {
+        return $this->addRoute($uri, $callable, ['DELETE']);
+    }
+
+    public function map($uri, $callable, $methods = ['GET', 'HEAD'])
+    {
+        return $this->addRoute($uri, $callable, $methods);
     }
 }

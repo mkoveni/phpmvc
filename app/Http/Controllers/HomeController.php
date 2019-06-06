@@ -8,7 +8,7 @@ class HomeController
 {
     public function index()
     {
-        echo 'yes';
+        return 'Welcome to my first Simina Framework';
     }
 
     public function welcome(RequestInterface $requestInterface)

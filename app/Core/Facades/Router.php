@@ -6,7 +6,7 @@ use App\Core\Router\Router as Route;
 
 class Router extends Facade
 {
-    public function getFacadeAccessor()
+    public static function getFacadeAccessor()
     {
         return Route::class;
     }
