@@ -18,11 +18,13 @@ if(file_exists($autoloadFile))
 
     foreach($namespaces as $namespace => $dirs)
     {
+
         if(!is_array($dirs)) {
             $dirs = (array) $dirs;
         }
 
         spl_autoload_register(function($class) use($namespace, $dirs, $root){
+
 
             if(preg_match('/^'. preg_quote($namespace) .'/', $class)) {
 
@@ -33,6 +35,7 @@ if(file_exists($autoloadFile))
 
                     $file = $root . $dir . DIRECTORY_SEPARATOR .  $class . '.php';
                   
+                    
                     if(file_exists($file))
                     {
                         require_once $file;

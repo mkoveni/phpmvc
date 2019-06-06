@@ -1,5 +1,8 @@
 {
     "psr4": {
+        
+        "Mkoveni\\Lani\\": "lani",
+
         "App\\": "app"
     },
     "files": [
