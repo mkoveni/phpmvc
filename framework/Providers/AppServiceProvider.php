@@ -5,10 +5,10 @@ namespace Mkoveni\Lani\Providers;
 use Mkoveni\Lani\Http\RequestInterface;
 use Mkoveni\Lani\Http\Request;
 use Mkoveni\Lani\Reflection\RFactory;
-use Mkoveni\Lani\Router\Router;
+use Mkoveni\Lani\Routing\Router;
 use Mkoveni\Lani\DI\ContainerInferface;
 
-class AppServiceProvider extends AbtractServiceProvider 
+class AppServiceProvider extends AbstractServiceProvider 
 {
     protected $sharedServices = [
         Router::class => Router::class,

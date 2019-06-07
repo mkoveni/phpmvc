@@ -2,7 +2,7 @@
 
 namespace Mkoveni\Lani\Facades;
 
-use Mkoveni\Lani\Router\Router as Route;
+use Mkoveni\Lani\Routing\Router as Route;
 
 class Router extends Facade
 {

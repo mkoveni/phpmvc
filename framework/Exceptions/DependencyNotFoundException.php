@@ -3,7 +3,7 @@
 namespace Mkoveni\Lani\Exceptions;
 
 
-class DependencyNotFoundException 
+class DependencyNotFoundException extends \Exception
 {
     
 }

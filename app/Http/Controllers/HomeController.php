@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Core\Http\RequestInterface;
+use Mkoveni\Lani\Http\RequestInterface;
+
 
 class HomeController 
 {

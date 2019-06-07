@@ -1,17 +1,15 @@
 <?php
 
 use Mkoveni\Lani\App;
-use Mkoveni\Lani\Filesystem\Finder;
-
-
+use Mkoveni\Lani\View\Template;
+use Mkoveni\Lani\Filesystem\Filesystem;
 
 require __DIR__ .'/autoload.php';
 
 $app = new App;
 
-$files = Finder::create();
+$template = new Template(__DIR__ . '/../template/', new Filesystem);
 
-$files->in(__DIR__ . '/../app');
-
+$template->render('home.html', []);
 
 require_once __DIR__ . '/../routes/web.php';

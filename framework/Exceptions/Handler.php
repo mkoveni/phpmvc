@@ -2,7 +2,12 @@
 
 namespace Mkoveni\Lani\Exceptions;
 
-class Handler
+abstract class Handler
 {
+    protected $doNotReport = [];
 
+    public function handle()
+    {
+        
+    }
 }

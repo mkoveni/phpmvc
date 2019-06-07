@@ -5,7 +5,7 @@ namespace Mkoveni\Lani\Providers;
 use Mkoveni\Lani\DI\Container;
 use Mkoveni\Lani\DI\ContainerInferface;
 
-abstract class AbtractServiceProvider
+abstract class AbstractServiceProvider
 {
     public abstract function register();
 

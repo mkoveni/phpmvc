@@ -1,8 +1,6 @@
 <?php
 
-namespace Mkoveni\Lani\Router;
-
-use Mkoveni\Lani\Collection\Arr;
+namespace Mkoveni\Lani\Routing;
 
 class Route 
 {
@@ -14,13 +12,17 @@ class Route
 
     protected $data;
 
-    public function __construct($uri, $handler, $methods = ['GET'])
+    protected $name;
+
+    public function __construct($uri, $handler, $methods = ['GET'], $name = '')
     {
         $this->uri = $uri;
 
         $this->handler = $handler;
 
         $this->methods = $methods;
+
+        $this->$name = $name;
     }
 
     public function getUri()
@@ -52,5 +54,15 @@ class Route
     public function getData() 
     {
         return $this->data ?? [];
+    }
+
+    public function setName($name)
+    {
+        $this->name = $name;
+    }
+
+    public function getName()
+    {
+        return $this->getName();
     }
 }

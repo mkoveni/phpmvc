@@ -2,9 +2,9 @@
 
 namespace Mkoveni\Lani\DI;
 
-use Mkoveni\Lani\Exceptions\DependencyNotFoundException;
-use Mkoveni\Lani\Providers\AbtractServiceProvider;
-use Mkoveni\Lani\Exceptions\InvalidProviderException;
+
+use Mkoveni\Lani\Providers\AbstractServiceProvider;
+use Mkoveni\Lani\Exceptions\{InvalidProviderException, DependencyNotFoundException};
 
 class Container implements ContainerInferface
 {
@@ -57,14 +57,14 @@ class Container implements ContainerInferface
     {
         if(!class_exists($name)) {
 
-            throw new DependencyNotFoundException;
+            throw new DependencyNotFoundException(sprintf('Could not find server with alias %s', $name));
         }
 
         $reflector = $this->getReflactor($name);
 
         if(!$reflector->isInstantiable()) {
 
-            throw new DependencyNotFoundException;
+            throw new DependencyNotFoundException(sprintf('Could not find server with alias %s', $name));
         }
 
         if($constructor = $reflector->getConstructor())
@@ -105,7 +105,7 @@ class Container implements ContainerInferface
     {
         if(is_string($provider)) {
 
-            if(class_exists($provider) && is_subclass_of($provider, AbtractServiceProvider::class)) {
+            if(class_exists($provider) && is_subclass_of($provider, AbstractServiceProvider::class)) {
 
                 (new $provider)->register();
 

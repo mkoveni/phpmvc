@@ -1,6 +1,6 @@
 <?php
 
-namespace Mkoveni\Lani\Router;
+namespace Mkoveni\Lani\Routing;
 
 use Mkoveni\Lani\Collection\Collection;
 

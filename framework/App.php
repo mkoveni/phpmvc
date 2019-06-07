@@ -2,14 +2,13 @@
 
 namespace Mkoveni\Lani;
 
-use Mkoveni\Lani\DI\Container;
-use Mkoveni\Lani\Router\Route;
-use Mkoveni\Lani\DI\Dependency;
-use Mkoveni\Lani\Router\Router;
 use Mkoveni\Lani\Exceptions\ClassNotFoundException;
-use Mkoveni\Lani\Reflection\{RFactory, AbstractReflector, RClass};
+use Mkoveni\Lani\DI\{Container, Dependency};
+use Mkoveni\Lani\Routing\{Route, Router};
+use Mkoveni\Lani\Reflection \ {
+    RFactory, AbstractReflector, RClass};
 
-class App 
+class App
 {
     protected $container;
 
@@ -32,7 +31,7 @@ class App
     {
         $this->container = Container::getInstance();
 
-        $this->container->set('settings', function(){
+        $this->container->set('settings', function () {
 
             return $this->settings;
         });
@@ -40,7 +39,6 @@ class App
         $this->registerProviders();
 
         $this->registerAliases();
-
     }
     public function getContainer()
     {
@@ -49,28 +47,34 @@ class App
 
     protected function registerProviders()
     {
-        foreach($this->serviceProviders as $provider)
-        {
+        foreach ($this->serviceProviders as $provider) {
             $this->container->registerProvider($provider);
         }
     }
 
     public function run()
     {
-        $router = $this->container->get(Router::class);
+        try {
 
-        $route = $router->dispatch($_SERVER['REQUEST_URI'] ?? '/', $_SERVER['REQUEST_METHOD']);
+            $router = $this->container->get(Router::class);
 
-        $this->process($route);
+            $route = $router->dispatch($_SERVER['REQUEST_URI'] ?? '/', $_SERVER['REQUEST_METHOD']);
+
+            $this->process($route);
+
+        } catch (\Exception $ex) {
+
+            echo 'A server error has occured.';
+         }
     }
 
     protected function process(Route $route)
     {
         $handler = $route->getHandler();
 
-        
 
-        if($handler instanceOf \Closure) {
+
+        if ($handler instanceof \Closure) {
 
             $reflector = $this->getReflector('function', $handler);
 
@@ -79,24 +83,20 @@ class App
             $resolved = $params->map([$this, 'resolveFromContainer'])->toArray();
 
             echo call_user_func_array($handler, array_merge($route->getData(), $resolved));
-
-
         }
 
-        if(is_array($handler) && count($handler) === 2)
-        {
+        if (is_array($handler) && count($handler) === 2) {
             [$controller, $method] = $handler;
 
-            
-            if(!class_exists($controller)) {
+
+            if (!class_exists($controller)) {
 
                 throw new ClassNotFoundException(sprintf('Controller %s Could not be found.', $controller));
             }
 
             $controller = $this->container->get($controller);
 
-            if(!method_exists($controller, $method))
-            {
+            if (!method_exists($controller, $method)) {
                 throw new \BadMethodCallException(sprintf('%s Has no method %s', $controller, $method));
             }
 
@@ -107,9 +107,6 @@ class App
             $resolved = $params->map([$this, 'resolveFromContainer'])->toArray();
 
             echo call_user_func_array([$controller, $method], array_merge($route->getData(), $resolved));
-
-
-
         }
     }
 
@@ -120,11 +117,10 @@ class App
 
     public function registerAliases()
     {
-        foreach($this->aliases as $alias)
-        {
+        foreach ($this->aliases as $alias) {
             $reflector = $this->getReflector('class', $alias);
 
-            if($reflector instanceof RClass) {
+            if ($reflector instanceof RClass) {
 
                 $alias::setContainer($this->container);
 
