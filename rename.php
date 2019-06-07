@@ -6,12 +6,12 @@ require_once __DIR__ .'/bootstrap/autoload.php';
 
 $files = Finder::create();
 
-$files->in(__DIR__ . '/test');
+$files->in(__DIR__ . '/test/Core');
 
 $fs = new Filesystem;
 
-$namespace = 'Ali';
-$toReplace = 'Mkoveni\\Testing';
+$namespace = 'Mkoveni\\Lani\\Core';
+$toReplace = 'Mkoveni\\Lani';
 
 $search = [
     'namespace '. $namespace . ';',

@@ -1,13 +1,10 @@
 {
     "psr4": {
         
-        "Mkoveni\\Lani\\": "lani",
-
-        "App\\": "app",
-
-        "Test\\": "test"
+        "Mkoveni\\Lani\\": "framework",
+        "App\\": "app"
     },
     "files": [
-        "app/Core/Helpers.php"
+        "framework/Helpers.php"
     ]
 }

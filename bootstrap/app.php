@@ -1,7 +1,8 @@
 <?php
 
+use Mkoveni\Lani\App;
 use Mkoveni\Lani\Filesystem\Finder;
-use App\Core\App;
+
 
 
 require __DIR__ .'/autoload.php';
