@@ -2,7 +2,8 @@
     "psr4": {
         
         "Mkoveni\\Lani\\": "framework",
-        "App\\": "app"
+        "App\\": "app",
+        "Test\\": "tests"
     },
     "files": [
         "framework/Helpers.php"
