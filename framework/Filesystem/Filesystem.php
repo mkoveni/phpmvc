@@ -31,5 +31,10 @@ class Filesystem
        file_put_contents($file, $content);
     }
 
+    public static function getDirectoryScanner()
+    {
+        return new DirectoryScanner;
+    }
+
 
 }

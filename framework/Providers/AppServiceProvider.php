@@ -2,17 +2,18 @@
 
 namespace Mkoveni\Lani\Providers;
 
-use Mkoveni\Lani\Http\RequestInterface;
-use Mkoveni\Lani\Http\Request;
-use Mkoveni\Lani\Reflection\RFactory;
 use Mkoveni\Lani\Routing\Router;
+use Mkoveni\Lani\Reflection\RFactory;
 use Mkoveni\Lani\DI\ContainerInferface;
+
+use Mkoveni\Lani\Http\{RequestInterface, Request};
+
 
 class AppServiceProvider extends AbstractServiceProvider 
 {
     protected $sharedServices = [
         Router::class => Router::class,
-        RFactory::class => Rfactory::Class
+        RFactory::class => Rfactory::Class,
     ];
 
 
@@ -22,7 +23,7 @@ class AppServiceProvider extends AbstractServiceProvider
 
     public function register()
     {
-    
+        
         $c = $this->getContainer();
 
         $this->registerSharedServices($c);

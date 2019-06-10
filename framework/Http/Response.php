@@ -55,7 +55,9 @@ class Response
         return $this;
     }
 
-    
+    public function send()
+    {
+    }
 
     
 }

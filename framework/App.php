@@ -7,39 +7,54 @@ use Mkoveni\Lani\DI\{Container, Dependency};
 use Mkoveni\Lani\Routing\{Route, Router};
 use Mkoveni\Lani\Reflection \ {
     RFactory, AbstractReflector, RClass};
+use Mkoveni\Lani\Filesystem\Filesystem;
+use Mkoveni\Lani\Exceptions\FileNotFoundException;
 
 class App
 {
     protected $container;
 
+    protected $rootDir;
+
+
+    /**
+     * Filesystem instance
+     *
+     * @var Filesystem
+     */
+    protected $filesystem ;
+
     protected $serviceProviders = [
-        \Mkoveni\Lani\Providers\AppServiceProvider::class
+        \Mkoveni\Lani\Providers\ConfigServiceProvider::class,
+        \Mkoveni\Lani\Providers\AppServiceProvider::class,
+        \Mkoveni\Lani\Providers\ValidationServiceProvider::class
     ];
 
     protected $aliases = [
-        \Mkoveni\Lani\Facades\Router::class
+        \Mkoveni\Lani\Facades\Router::class,
+        \Mkoveni\Lani\Facades\Config::class
     ];
 
-    protected $settings = [
-        'app' => [
-            'debug' => true,
-            'name' => 'Appy'
-        ]
-    ];
-
-    public function __construct()
+    public function __construct(string $rootDir)
     {
         $this->container = Container::getInstance();
 
-        $this->container->set('settings', function () {
+        $this->filesystem = $this->container->get(Filesystem::class);
 
-            return $this->settings;
-        });
+        if(!$this->filesystem->exists($rootDir)) {
+
+            throw new FileNotFoundException(sprintf('The specified root path %s is not valid.', $rootPath));
+        }
+
+        $this->rootDir = $rootDir;
+
+        $this->registerPaths();
 
         $this->registerProviders();
 
         $this->registerAliases();
     }
+
     public function getContainer()
     {
         return $this->container;
@@ -50,6 +65,21 @@ class App
         foreach ($this->serviceProviders as $provider) {
             $this->container->registerProvider($provider);
         }
+    }
+
+    public function registerPaths()
+    {
+        $this->container->set('rootDir', function(){
+            return $this->rootDir;
+        });
+
+        $this->container->set('configDir', function(){
+            return $this->rootDir . 'config';
+        });
+
+        $this->container->set('routesDir', function(){
+            return $this->rootDir . 'routes';
+        });
     }
 
     public function run()
@@ -64,7 +94,7 @@ class App
 
         } catch (\Exception $ex) {
 
-            echo 'A server error has occured.';
+            throw $ex;
          }
     }
 

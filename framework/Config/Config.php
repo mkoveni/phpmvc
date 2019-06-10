@@ -2,44 +2,56 @@
 
 namespace Mkoveni\Lani\Config;
 
-use Mkoveni\Lani\Config\Parsers\ParserInterface;
-use Mkoveni\Lani\Exceptions\FileNotFoundException;
+use Mkoveni\Lani\Config\Loaders\Loader;
+use Mkoveni\Lani\Collection\Arr;
 
 class Config 
 {
-    /**
-     * Parser instance
-     *
-     * @var ParserInterface
-     */
-    protected $parser;
-
     protected $config = [];
 
-    public function __construct(ParserInterface $parser)
-    {
-        $this->parser = $parser;
-    }
+    protected $cached = [];
 
-    public function load($file)
+    public function fromLoaders(array $loaders)
     {
-        if(!file_exists($file)) {
+        foreach($loaders as $loader) {
 
-            throw new FileNotFoundException("The Configuration file '$file' could not be found.");
+            if($loader instanceof Loader) {
+
+                $this->config = array_merge($this->config, $loader->parse());
+            }
         }
 
-        $this->config = array_merge($this->config,
-            $this->parser->parse($file)
-        );
-    }
 
-    public function setParser(ParserInterface $parser)
-    {
-        $this->parser = $parser;
+        return $this;
     }
 
     public function get($key, $default = null)
     {
+        if($this->isCache($key)) {
 
+            return $this->fromCache($key);
+        }
+
+        return $this->cache($key, Arr::get($this->config, $key, $default));
+    }
+
+    protected function cache($key, $value) {
+
+        return $this->cached[$key] = $value;
+    }
+
+    protected function isCache($key)
+    {
+        return Arr::exists($this->cached, $key);
+    }
+
+    protected function fromCache($key)
+    {
+        return Arr::get($this->cached, $key, null);
+    }
+
+    public function set($key, $value) {
+
+        $this->config[$key] = $value;
     }
 }

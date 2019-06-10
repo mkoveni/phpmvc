@@ -2,13 +2,17 @@
 
 namespace Mkoveni\Lani\Validation;
 
+use Mkoveni\Lani\Validation\Rules\Rule;
 use Mkoveni\Lani\Validation\Rules\NotBlank;
+use Mkoveni\Lani\Helpers\Str;
 
 class Validator implements ValidatorInterface
 {
-    protected $registeredRules = [
+    protected static $defaultRules = [
         NotBlank::class
     ];
+
+    public $registeredRules = [];
 
     protected $errors = [];
 
@@ -27,6 +31,10 @@ class Validator implements ValidatorInterface
 
             foreach($rules as $rule) {
                 
+               if($vRule = $this->getRule($rule))
+               {
+                    var_dump($vRule->apply($value));
+               }
             }
         }
     }
@@ -36,9 +44,22 @@ class Validator implements ValidatorInterface
         $this->errors[$attribute][] = $message;
     }
 
-    public function addRule($rule)
+    public function registerRules($rules)
     {
-        array_push($this->registeredRules, $rule);
+        foreach($rules as $rule) {
+
+            if(is_subclass_of($rule, Rule::class)) {
+
+                $class = $rule;
+
+                if($pos = strrpos($rule, '\\'))
+                {
+                    $class = substr($class, $pos+1);
+                }
+
+                $this->registeredRules[Str::snakeCase($class)] = $rule;
+            }
+        }
     }
 
     public function getErrors()
@@ -49,5 +70,28 @@ class Validator implements ValidatorInterface
     public function hasErrors()
     {
         return count($this->errors) > 0;
+    }
+
+    public static function getDefaultRules()
+    {
+        return static::$defaultRules;
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param [type] $key
+     * @return \Mkoveni\Lani\Validation\Rules\Rule;
+     */
+    protected function getRule($key) {
+
+        if(!isset($this->registeredRules[$key]))
+        {
+            throw new \Mkoveni\Lani\Exceptions\InvalidRuleException(sprintf(
+                'The rule %s is not a valid validation rule, please make sure that the rule is registered with the validator.', $key
+            ));
+        }
+
+        return container()->get($this->registeredRules[$key]);
     }
 }

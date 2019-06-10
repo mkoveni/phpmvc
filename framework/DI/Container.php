@@ -57,14 +57,14 @@ class Container implements ContainerInferface
     {
         if(!class_exists($name)) {
 
-            throw new DependencyNotFoundException(sprintf('Could not find server with alias %s', $name));
+            throw new DependencyNotFoundException(sprintf('Could not find service with alias %s', $name));
         }
 
         $reflector = $this->getReflactor($name);
 
         if(!$reflector->isInstantiable()) {
 
-            throw new DependencyNotFoundException(sprintf('Could not find server with alias %s', $name));
+            throw new DependencyNotFoundException(sprintf('Could not find service with alias %s', $name));
         }
 
         if($constructor = $reflector->getConstructor())

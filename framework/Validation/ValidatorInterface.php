@@ -10,5 +10,5 @@ interface ValidatorInterface
 
     public function hasErrors();
 
-    public function addRule($rule);
+    public function registerRules($rules);
 }

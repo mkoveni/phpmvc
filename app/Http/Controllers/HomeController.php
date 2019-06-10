@@ -2,18 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use Mkoveni\Lani\Http\RequestInterface;
+use Mkoveni\Lani\Validation\ValidatorInterface;
 
 
-class HomeController 
+class HomeController
 {
-    public function index()
+    public function index(ValidatorInterface $validatorInterface)
     {
-        return 'Welcome to my first Simina Framework';
+        $validatorInterface->validate(['username' => 's'], [
+            'username' => ['not_blank']
+        ]);
     }
 
-    public function welcome(RequestInterface $requestInterface)
+    public function welcome()
     {
-        return $requestInterface->requestUri;
+        return 'Welcome to my first Lani App';
     }
 }
