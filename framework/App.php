@@ -43,7 +43,7 @@ class App
 
         if(!$this->filesystem->exists($rootDir)) {
 
-            throw new FileNotFoundException(sprintf('The specified root path %s is not valid.', $rootPath));
+            throw new FileNotFoundException(sprintf('The specified root path %s is not valid.', $rootDir));
         }
 
         $this->rootDir = $rootDir;
@@ -53,11 +53,27 @@ class App
         $this->registerProviders();
 
         $this->registerAliases();
+
+        $this->loadRoutes();
     }
 
     public function getContainer()
     {
         return $this->container;
+    }
+
+    protected function registerAliases()
+    {
+        foreach ($this->aliases as $alias) {
+            $reflector = $this->getReflector('class', $alias);
+
+            if ($reflector instanceof RClass) {
+
+                $alias::setContainer($this->container);
+
+                class_alias($alias, $reflector->getShortName());
+            }
+        }
     }
 
     protected function registerProviders()
@@ -67,7 +83,7 @@ class App
         }
     }
 
-    public function registerPaths()
+    protected function registerPaths()
     {
         $this->container->set('rootDir', function(){
             return $this->rootDir;
@@ -80,6 +96,20 @@ class App
         $this->container->set('routesDir', function(){
             return $this->rootDir . 'routes';
         });
+    }
+
+    protected function loadRoutes()
+    {
+        $files = Filesystem::getDirectoryScanner()
+                        ->files()
+                        ->matches('\.php$')
+                        ->searchDir(routesDir())
+                        ->getFileArray();
+        
+        foreach($files as $file) {
+
+            require_once $file;
+        }
     }
 
     public function run()
@@ -145,19 +175,6 @@ class App
         return $this->container->get($dependency->getClass());
     }
 
-    public function registerAliases()
-    {
-        foreach ($this->aliases as $alias) {
-            $reflector = $this->getReflector('class', $alias);
-
-            if ($reflector instanceof RClass) {
-
-                $alias::setContainer($this->container);
-
-                class_alias($alias, $reflector->getShortName());
-            }
-        }
-    }
 
     /**
      * Undocumented function

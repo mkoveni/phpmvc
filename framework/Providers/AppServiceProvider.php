@@ -6,7 +6,7 @@ use Mkoveni\Lani\Routing\Router;
 use Mkoveni\Lani\Reflection\RFactory;
 use Mkoveni\Lani\DI\ContainerInferface;
 
-use Mkoveni\Lani\Http\{RequestInterface, Request};
+use Mkoveni\Lani\Http\{RequestInterface, Request, ResponseInterface, Response};
 
 
 class AppServiceProvider extends AbstractServiceProvider 
@@ -18,7 +18,8 @@ class AppServiceProvider extends AbstractServiceProvider
 
 
     protected $services = [
-        RequestInterface::class => Request::class
+        RequestInterface::class => Request::class,
+        ResponseInterface::class => Response::class
     ];
 
     public function register()
