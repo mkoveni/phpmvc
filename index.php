@@ -1,6 +1,10 @@
 <?php
-use App\Core\DI\Container;
-
+use Mkoveni\Lani\Routing\Middleware\MiddlewareInterface;
+use Mkoveni\Lani\Http\RequestInterface;
+use Mkoveni\Lani\Routing\Middleware\RequestHandlerInterface;
+use Mkoveni\Lani\Http\ResponseInterface;
+use Mkoveni\Lani\Routing\Dispatcher;
+use Mkoveni\Lani\Http\Request;
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -8,4 +12,16 @@ error_reporting(E_ALL);
 
 require __DIR__ . '/bootstrap/app.php';
 
-$app->run();
+
+class Authenticate implements MiddlewareInterface
+{
+    public function process(RequestInterface $request, RequestHandlerInterface $handler):ResponseInterface
+    {
+        return $handler->handle($request);
+    }
+}
+
+$dispatcher = new Dispatcher([ new Authenticate]);
+
+$response = $dispatcher->handle(new Request);
+
