@@ -3,15 +3,29 @@
 namespace Mkoveni\Lani;
 
 use Mkoveni\Lani\Exceptions\ClassNotFoundException;
-use Mkoveni\Lani\DI\{Container, Dependency};
-use Mkoveni\Lani\Routing\{Route, Router};
+use Mkoveni\Lani\DI \ {
+Container, Dependency
+};
+use Mkoveni\Lani\Routing \ {
+Route, Router,
+Middleware\MiddlewareInterface,
+Middleware\RequestHandlerInterface,
+Middleware\MiddlewareAwareTrait
+};
 use Mkoveni\Lani\Reflection \ {
-    RFactory, AbstractReflector, RClass};
+    RFactory,
+    AbstractReflector,
+    RClass
+};
 use Mkoveni\Lani\Filesystem\Filesystem;
 use Mkoveni\Lani\Exceptions\FileNotFoundException;
+use Mkoveni\Lani\Http\RequestInterface;
+use Mkoveni\Lani\Http\ResponseInterface;
 
-class App
+class App implements RequestHandlerInterface
 {
+    use MiddlewareAwareTrait;
+
     protected $container;
 
     protected $rootDir;
@@ -22,7 +36,7 @@ class App
      *
      * @var Filesystem
      */
-    protected $filesystem ;
+    protected $filesystem;
 
     protected $serviceProviders = [
         \Mkoveni\Lani\Providers\ConfigServiceProvider::class,
@@ -41,7 +55,7 @@ class App
 
         $this->filesystem = $this->container->get(Filesystem::class);
 
-        if(!$this->filesystem->exists($rootDir)) {
+        if (!$this->filesystem->exists($rootDir)) {
 
             throw new FileNotFoundException(sprintf('The specified root path %s is not valid.', $rootDir));
         }
@@ -85,15 +99,15 @@ class App
 
     protected function registerPaths()
     {
-        $this->container->set('rootDir', function(){
+        $this->container->set('rootDir', function () {
             return $this->rootDir;
         });
 
-        $this->container->set('configDir', function(){
+        $this->container->set('configDir', function () {
             return $this->rootDir . 'config';
         });
 
-        $this->container->set('routesDir', function(){
+        $this->container->set('routesDir', function () {
             return $this->rootDir . 'routes';
         });
     }
@@ -101,32 +115,59 @@ class App
     protected function loadRoutes()
     {
         $files = Filesystem::getDirectoryScanner()
-                        ->files()
-                        ->matches('\.php$')
-                        ->searchDir(routesDir())
-                        ->getFileArray();
-        
-        foreach($files as $file) {
+            ->files()
+            ->matches('\.php$')
+            ->searchDir(routesDir())
+            ->getFileArray();
+
+        foreach ($files as $file) {
 
             require_once $file;
         }
     }
 
-    public function run()
+    public function run(RequestInterface $request)
     {
         try {
 
             $router = $this->container->get(Router::class);
 
-            $route = $router->dispatch($_SERVER['REQUEST_URI'] ?? '/', $_SERVER['REQUEST_METHOD']);
+            $route = $router->dispatch($request);
 
-            $this->process($route);
+            $response = $this->process($route);
 
+            if (!$response instanceof ResponseInterface) { 
+
+                throw new \RuntimeException(sprintf('Callable must return an instance of %s', ResponseInterface::class));
+            }
+
+            $middleware =  new class($response) implements MiddlewareInterface {
+
+                protected $response;
+
+                public function __construct(ResponseInterface $response)
+                {
+                    $this->response = $response;    
+                }
+
+                public function process(RequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+                {
+                    return $this->response;
+                }
+            };
+
+            $this->addMiddleToStack($middleware);
+            
+            echo $this->handle($request)->getBody();
+
+                
         } catch (\Exception $ex) {
 
             throw $ex;
-         }
+        }
     }
+
+
 
     protected function process(Route $route)
     {
@@ -142,7 +183,7 @@ class App
 
             $resolved = $params->map([$this, 'resolveFromContainer'])->toArray();
 
-            echo call_user_func_array($handler, array_merge($route->getData(), $resolved));
+            return call_user_func_array($handler, array_merge($route->getData(), $resolved));
         }
 
         if (is_array($handler) && count($handler) === 2) {
@@ -166,9 +207,24 @@ class App
 
             $resolved = $params->map([$this, 'resolveFromContainer'])->toArray();
 
-            echo call_user_func_array([$controller, $method], array_merge($route->getData(), $resolved));
+            return call_user_func_array([$controller, $method], array_merge($route->getData(), $resolved));
         }
     }
+
+    public function handle(RequestInterface $request): ResponseInterface
+    {
+        $middleware = current($this->middleware);
+
+        next($this->middleware);
+
+        if (!$middleware) {
+
+            throw new \RuntimeException('The middleware stack is exhausted.');
+        }
+
+        return $middleware->process($request, $this);
+    }
+
 
     public function resolveFromContainer(Dependency $dependency)
     {

@@ -4,9 +4,12 @@ namespace Mkoveni\Lani\Routing;
 
 use Mkoveni\Lani\Exceptions\MethodNotSupportedException;
 use Mkoveni\Lani\Exceptions\RouteNotFoundException;
+use Mkoveni\Lani\Http\RequestInterface;
 
-class Router 
+class Router
 {
+    
+
     const PARAMETER_REGEX="\{[a-zA-Z][a-zA-Z0-9\_\-]*(:[^{}]+)?\}";
     /**
      * 
@@ -38,8 +41,11 @@ class Router
         return  $this->routes[$this->path] ?? null;
     }
 
-    public function dispatch(string $uri, string $method)
+    public function dispatch(RequestInterface $request)
     {
+        $uri = $request->requestUri;
+        $method = $request->requestMethod;
+
         if(strpos($uri, '?') !== false) {
 
             $uri = substr($uri, 0, (strpos($uri, '?')));
@@ -53,6 +59,7 @@ class Router
             if(!$route->allows($method))
                 throw new MethodNotSupportedException('That request method is not supported.');
 
+            
             return $route;
         }
 

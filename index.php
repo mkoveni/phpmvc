@@ -3,7 +3,6 @@ use Mkoveni\Lani\Routing\Middleware\MiddlewareInterface;
 use Mkoveni\Lani\Http\RequestInterface;
 use Mkoveni\Lani\Routing\Middleware\RequestHandlerInterface;
 use Mkoveni\Lani\Http\ResponseInterface;
-use Mkoveni\Lani\Routing\Dispatcher;
 use Mkoveni\Lani\Http\Request;
 
 ini_set('display_errors', 1);
@@ -21,7 +20,6 @@ class Authenticate implements MiddlewareInterface
     }
 }
 
-$dispatcher = new Dispatcher([ new Authenticate]);
+$app->run(new Request);
 
-$response = $dispatcher->handle(new Request);
 
