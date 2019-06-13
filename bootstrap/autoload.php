@@ -1,61 +1,70 @@
 <?php
 
-$dir_separator = DIRECTORY_SEPARATOR;
+$dir_separator  = DIRECTORY_SEPARATOR;
 
-$root = __DIR__ . "{$dir_separator}..{$dir_separator}";
+$rootDir = __DIR__ . "{$dir_separator}..{$dir_separator}";
 
-$autoloadFile = $root . 'autoload.json';
+$packages_dir = "{$rootDir}packages/";
 
-if(file_exists($autoloadFile))
+/**
+ * AUTOLOAD THIRD PARTY PACKAGES
+ */
+autoload($packages_dir, "{$packages_dir}/autoload.json", $dir_separator);
+
+/**
+ * AUTOLOAD APP CLASSES
+ */
+autoload($rootDir, "{$rootDir}autoload.json", $dir_separator);
+
+function autoload($root, $autoloadFile)
 {
-    $autoload =  json_decode(file_get_contents($autoloadFile), true);
+    if (file_exists($autoloadFile)) {
+        $autoload =  json_decode(file_get_contents($autoloadFile), true);
 
-    $namespaces = $autoload['psr4'] ?? [];
+        $namespaces = $autoload['psr4'] ?? [];
 
-    $files = $autoload['files'] ?? [];
-
-    
-
-    foreach($namespaces as $namespace => $dirs)
-    {
-
-        if(!is_array($dirs)) {
-            $dirs = (array) $dirs;
-        }
-
-        spl_autoload_register(function($class) use($namespace, $dirs, $root){
+        $files = $autoload['files'] ?? [];
 
 
-            if(preg_match('/^'. preg_quote($namespace) .'/', $class)) {
 
-                $class = str_replace($namespace, '', $class);
-                $class = str_replace('\\', DIRECTORY_SEPARATOR, $class);
+        foreach ($namespaces as $namespace => $dirs) {
 
-                foreach($dirs as $dir) {
+            if (!is_array($dirs)) {
+                $dirs = (array)$dirs;
+            }
 
-                    $file = $root . $dir . DIRECTORY_SEPARATOR .  $class . '.php';
-                  
-                    
-                    if(file_exists($file))
-                    {
-                        require_once $file;
+            spl_autoload_register(function ($class) use ($namespace, $dirs, $root) {
 
-                        return;
+
+                if (preg_match('/^' . preg_quote($namespace) . '/', $class)) {
+
+                    $class = str_replace($namespace, '', $class);
+                    $class = str_replace('\\', DIRECTORY_SEPARATOR, $class);
+
+                    foreach ($dirs as $dir) {
+
+                       
+                        $file = $root . $dir . DIRECTORY_SEPARATOR .  $class . '.php';
+
+                        if (file_exists($file)) {
+                            require_once $file;
+
+                            return;
+                        }
                     }
 
+                    return false;
                 }
+            });
+        }
 
-                return false;
+
+        foreach ($files as $file) {
+
+            if (file_exists($root . $file)) {
+
+                require_once $root . $file;
             }
-        });
-    }
-
-
-    foreach($files as $file) {
-
-        if(file_exists($root . $file)) {
-
-            require_once $root . $file;
         }
     }
 }

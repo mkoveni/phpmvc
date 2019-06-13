@@ -2,125 +2,154 @@
 
 namespace Mkoveni\Lani\Http;
 
+use Psr\Http\Message\ServerRequestInterface;
 
-class Request implements RequestInterface
+class Request implements ServerRequestInterface
 {
-    protected $headers = [];
+    protected $attributes = [];
 
-    protected $data = [];
+    protected $params = [];
 
-
-    public function __construct()
+    protected $body;
+    
+    public function getServerParams()
     {
-        $this->init();
-
-        $this->prepareData();
+        return $this->getParams('server');
     }
 
-    protected function init()
+    public function getCookieParams()
     {
-        foreach($_SERVER as $key => $value) {
-
-            $this->{$this->transformServerEntry($key)} = $value;
-        }
-
-        $this->headers = apache_request_headers();
-
+        return  $this->getParams('cookie');
     }
 
-    public function all(): array
+    /**
+     * {@inheritDoc}
+     */
+    public function withCookieParams(array $cookies)
     {
-        return $this->data ?? [];
+        return $this->withParams('cookie', $cookies);
     }
 
-    public function getParam($key, $default = null): ?string
+    /**
+     * {@inheritDoc}
+     */
+    public function getQueryParams()
     {
-        return $this->data[$key] ?? $default;
+        return $this->getParams('query');
     }
 
-    public function getHeader($key, $default = null): ?string
+    /**
+     * {@inheritDoc}
+     */
+    public function withQueryParams(array $query)
     {
-        return $this->headers[$key] ?? $default;
+        return $this->withParams('query', $query);
     }
 
-    public function getRequestMethod(): ?string
+    /**
+     * {@inheritDoc}
+     */
+    public function getUploadedFiles()
     {
-        return $this->requestMethod;
+        return $this->getParams('file');
     }
 
-    public function isAjax(): bool
+    /**
+     * {@inheritDoc}
+     */
+    public function withUploadedFiles(array $uploadedFiles)
     {
-        return ($header = $this->getHeader('Content-Type')) && $header === 'application/json';
+        return $this->withParams('file', $uploadedFiles);
     }
 
-    protected function prepareData()
+    /**
+     * {@inheritDoc}
+     */
+    public function getParsedBody()
     {
-        switch($this->requestMethod) {
-
-            case 'GET':
-                $this->data = $_GET;
-                break;
-            case 'POST':
-                $this->data = $this->getPostData();
-            default:
-                $this->data = $this->getNoneStandardData();
-            break;
-
-        }
+        return $this->body;
     }
 
-    protected function getInput()
+    /**
+     * {@inheritDoc}
+     */
+    public function withParsedBody($data)
     {
-        return file_get_contents('php://input');
+        $clone = clone $this;
+
+        $clone->body = $data;
+
+        return $clone;
     }
 
-    protected function getPostData()
+    /**
+     * {@inheritDoc}
+     */
+    public function getAttributes()
     {
-        if($this->isAjax() && $stream = $this->getInput()) {
-            
-            return json_decode($stream,true);
-        }
-
-        return $_POST ?? ['name' => 'simon'];
+        return $this->attributes;
     }
 
-    protected function getNoneStandardData()
+    /**
+     * {@inheritDoc}
+     */
+    public function getAttribute($name, $default = null)
     {
-        $data = [];
-
-        if ($stream = $this->getInput()) {
-            
-            if($this->isAjax()) {
-
-                return json_decode($stream, true);
-            }
-
-            return parse_str($stream, $data);
-        }
-
-        return $data;
-        
+        return $this->attributes[$name] ?? $default;
     }
 
-    protected function transformServerEntry(string $entry)
+    /**
+     * {@inheritDoc}
+     */
+    public function withAttribute($name, $value)
     {
-        $entry = strtolower($entry);
+        $clone = clone $this;
+        $clone->attributes[$name] = $value;
 
-        if(preg_match_all('#_[a-z]+#', $entry, $matches))
-        {
-            
-            foreach($matches as $key => $match)
-            {   
-               foreach($match as $p) {
+        return $clone;
+    }
 
-                $replacement = ucfirst(str_replace('_','', $p));
+    
+    /**
+     * {@inheritDoc}
+     */
+    public function withoutAttribute($name)
+    {
+        $clone = clone $this;
+        unset($clone->attributes[$name]);
 
-                $entry = str_replace($p, $replacement, $entry);
+        return $clone;
+    }
 
-               }
-            } 
-        }
 
-        return $entry;
+
+    /**
+     * This is not ps7 implementation
+     *
+     * sets parameters for the request
+     * @return void
+     */
+    protected function setParams($type, array $params)
+    {
+        $this->params[$type] = $params;
+    }
+
+    /**
+     * This is not ps7 implementation
+     *
+     * gets parameters for the request
+     * @return void
+     */
+    protected function getParams($type)
+    {
+        return $this->params[$type] ?? [];
+    }
+
+    protected function withParams($type, array $params)
+    {
+        $clone = clone $this;
+        $clone->setParams($type, $params);
+
+        return $clone;
     }
 }

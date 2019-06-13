@@ -1,0 +1,9 @@
+{
+    "psr4": {
+        "Psr\\Http\\Message": "http-message/src",
+        "Psr\\Http\\Server": ["http-server-handler/src", "http-server-middleware/src"]
+    },
+    "files": [
+
+    ]
+}

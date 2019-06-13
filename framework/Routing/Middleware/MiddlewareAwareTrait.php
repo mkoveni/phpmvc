@@ -2,6 +2,8 @@
 
 namespace Mkoveni\Lani\Routing\Middleware;
 
+use Psr\Http\Server\MiddlewareInterface;
+
 trait MiddlewareAwareTrait
 {
     /**

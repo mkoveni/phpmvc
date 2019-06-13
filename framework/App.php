@@ -8,8 +8,6 @@ Container, Dependency
 };
 use Mkoveni\Lani\Routing \ {
 Route, Router,
-Middleware\MiddlewareInterface,
-Middleware\RequestHandlerInterface,
 Middleware\MiddlewareAwareTrait
 };
 use Mkoveni\Lani\Reflection \ {
@@ -19,8 +17,9 @@ use Mkoveni\Lani\Reflection \ {
 };
 use Mkoveni\Lani\Filesystem\Filesystem;
 use Mkoveni\Lani\Exceptions\FileNotFoundException;
-use Mkoveni\Lani\Http\RequestInterface;
-use Mkoveni\Lani\Http\ResponseInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 class App implements RequestHandlerInterface
 {
@@ -211,7 +210,7 @@ class App implements RequestHandlerInterface
         }
     }
 
-    public function handle(RequestInterface $request): ResponseInterface
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $middleware = current($this->middleware);
 

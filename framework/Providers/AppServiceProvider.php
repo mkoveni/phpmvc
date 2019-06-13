@@ -6,8 +6,8 @@ use Mkoveni\Lani\Routing\Router;
 use Mkoveni\Lani\Reflection\RFactory;
 use Mkoveni\Lani\DI\ContainerInferface;
 
-use Mkoveni\Lani\Http\{RequestInterface, Request, ResponseInterface, Response};
-
+use Mkoveni\Lani\Http\{Request, Response};
+use Psr\Http\Message\ServerRequestInterface;
 
 class AppServiceProvider extends AbstractServiceProvider 
 {
@@ -16,15 +16,14 @@ class AppServiceProvider extends AbstractServiceProvider
         RFactory::class => Rfactory::Class,
     ];
 
-
+    
     protected $services = [
-        RequestInterface::class => Request::class,
+        ServerRequestInterface::class => Request::class,
         ResponseInterface::class => Response::class
     ];
 
     public function register()
     {
-        
         $c = $this->getContainer();
 
         $this->registerSharedServices($c);
