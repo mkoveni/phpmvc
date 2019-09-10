@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Mkoveni\Lani\Http\ResponseInterface;
+use Psr\Http\Message\ResponseInterface;
+
 
 class UserController
 {
-    public function index(ResponseInterface $response)
+    public function index($id, ResponseInterface $response)
     {
         return $response->withJson([
             ['name' => 'Simon'], 

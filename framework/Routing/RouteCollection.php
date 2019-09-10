@@ -21,6 +21,20 @@ class RouteCollection implements \IteratorAggregate
     }
 
     /**
+     * Gets a route by its name
+     *
+     * @param [string] $uri
+     * @return Route
+     */
+    public function getByName(string $name): ?Route {
+
+        return $this->routes->first(function(Route $route) use($name){
+
+            return $route->getName() === $name;
+        });
+    }
+
+    /**
      * Gets a route by its uri
      *
      * @param [string] $uri

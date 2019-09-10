@@ -6,6 +6,7 @@ use Mkoveni\Lani\Routing\Router;
 use Mkoveni\Lani\Reflection\RFactory;
 use Mkoveni\Lani\DI\ContainerInferface;
 
+use Psr\Http\Message\ResponseInterface;
 use Mkoveni\Lani\Http\{Request, Response};
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -38,6 +39,11 @@ class AppServiceProvider extends AbstractServiceProvider
         {
             $containerInferface->share($alias, function() use($concrete){
 
+                if($concrete instanceof \Mkoveni\Lani\Http\Request) {
+
+                    return new $concrete($_SERVER);
+                }
+                
                 return new $concrete;
             });
         }

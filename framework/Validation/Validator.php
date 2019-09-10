@@ -33,7 +33,7 @@ class Validator implements ValidatorInterface
                 
                if($vRule = $this->getRule($rule))
                {
-                    var_dump($vRule->apply($value));
+                    $vRule->apply($value);
                }
             }
         }

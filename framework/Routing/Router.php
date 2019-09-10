@@ -4,13 +4,13 @@ namespace Mkoveni\Lani\Routing;
 
 use Mkoveni\Lani\Exceptions\MethodNotSupportedException;
 use Mkoveni\Lani\Exceptions\RouteNotFoundException;
-use Mkoveni\Lani\Http\RequestInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 class Router
 {
-    
 
-    const PARAMETER_REGEX="\{[a-zA-Z][a-zA-Z0-9\_\-]*(:[^{}]+)?\}";
+
+    const PARAMETER_REGEX = "\{[a-zA-Z][a-zA-Z0-9\_\-]*(:[^{}]+)?\}";
     /**
      * 
      *
@@ -41,44 +41,66 @@ class Router
         return  $this->routes[$this->path] ?? null;
     }
 
-    public function dispatch(RequestInterface $request)
+    public function dispatch(ServerRequestInterface $request)
     {
-        $uri = $request->requestUri;
-        $method = $request->requestMethod;
+        $uri = $request->getUri()->getPath();
 
-        if(strpos($uri, '?') !== false) {
+        $method = $request->getMethod();
+
+        if (strpos($uri, '?') !== false) {
 
             $uri = substr($uri, 0, (strpos($uri, '?')));
         }
 
         $route = $route = $this->routes->getByUri($uri) ?? $this->resolveByRegex($uri);
 
-        
-        if($route) {
 
-            if(!$route->allows($method))
+        if ($route) {
+
+            if (!$route->allows($method))
                 throw new MethodNotSupportedException('That request method is not supported.');
 
-            
+
             return $route;
         }
 
         throw new RouteNotFoundException(sprintf('Route %s could not be found.', $uri));
-        
+    }
+
+    public function urlFor($name, array $parameters)
+    {
+        $route = $this->routes->getByName($name);
+
+        if (!$route) { }
+
+        $uri = $route->getUri();
+
+        if (preg_match_all('#\{([a-z]+)(?::.+?)?\}#', $uri, $matches, PREG_SET_ORDER)) {
+
+            foreach ($matches as $match) {
+
+                [$variable, $paramName] = $match;
+
+                if (isset($parameters[$paramName])) {
+                    $uri = str_replace($variable, $parameters[$paramName], $uri);
+                }
+            }
+        }
+
+        return $uri;
     }
 
     protected function resolveByRegex($uri)
     {
         $routes = $this->routes;
 
-        foreach($routes as $route) {
+        foreach ($routes as $route) {
 
-            if($pattern = $this->swapPlaceHolderWithPattern($route->getUri()))
-            {
-                if(preg_match("#^$pattern$#", $uri, $matches)) {
+            if ($pattern = $this->swapPlaceHolderWithPattern($route->getUri())) {
+                if (preg_match("#^$pattern$#", $uri, $matches)) {
 
                     unset($matches[0]);
-                    
+
                     $route->setData($matches);
 
                     return $route;
@@ -93,17 +115,17 @@ class Router
     {
         $pattern = self::PARAMETER_REGEX;
 
-        return preg_replace_callback('#'. $pattern. '#', [$this, 'replace'], $uri);
+        return preg_replace_callback('#' . $pattern . '#', [$this, 'replace'], $uri);
     }
 
     protected function replace($matches)
     {
-        if(count($matches) === 1) {
+        if (count($matches) === 1) {
 
             return '([\w]+)';
         }
 
-        return '('. substr($matches[1], 1) .')';
+        return '(' . substr($matches[1], 1) . ')';
     }
 
 

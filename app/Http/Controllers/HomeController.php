@@ -2,21 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use Mkoveni\Lani\Validation\ValidatorInterface;
-use Mkoveni\Lani\Http\ResponseInterface;
 use Config;
+use Psr\Http\Message\ResponseInterface;
+use Mkoveni\Lani\Validation\ValidatorInterface;
+
 class HomeController
 {
     public function index(ValidatorInterface $validatorInterface, ResponseInterface $response)
     {
-        return $response->withJson(Config::get('app'));
+       
         // $validatorInterface->validate(['username' => 's'], [
         //     'username' => ['not_blank']
         // ]);
+
+        return $response->withJson(Config::get('app'));
     }
 
-    public function welcome()
+    public function welcome(ResponseInterface $response)
     {
-        return 'Welcome to my first Lani App';
+        return $response->withJson(['message' => 'Welcome to my first Lani App']);
     }
 }

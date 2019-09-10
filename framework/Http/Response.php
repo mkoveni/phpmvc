@@ -2,17 +2,25 @@
 
 namespace Mkoveni\Lani\Http;
 
+use Psr\Http\Message\StreamInterface;
+use Psr\Http\Message\ResponseInterface;
+
 class Response implements ResponseInterface
 {
-    protected $body;
+    use MessageTrait;
+
 
     protected $statusCode;
 
-    protected $headers = [];
-
-    protected $version = '1.0';
-
     protected $message = 'Http Message';
+
+    public function __construct($status = 200, $headers = [], $body = null, $message = '', $protocolVersion = '1.1')
+    {
+        $this->headers = $headers;
+        $this->statusCode = $status;
+        $this->message = $message;
+        $this->version = $protocolVersion;
+    }
 
     public function setBody($body)
     {
@@ -21,35 +29,18 @@ class Response implements ResponseInterface
         return $this;
     }
 
-    public function getBody()
-    {
-        return $this->body;
-    }
-
     public function getStatusCode()
     {
         return $this->statusCode;
     }
 
-    public function getHeaders()
-    {
-        return $this->headers;
-    }
 
-    public function withBody(string $body){
-
-        $clone = clone $this;
-
-        $clone->setBody($body);
-
-        return $clone;
-    }
 
     public function withJson($data, $status = 200)
     {
-        $response = $this->withBody(json_encode($data));
+        $clone = clone $this;
 
-        
+        $response = $clone->withBody(Stream::create(json_encode($data, JSON_PRETTY_PRINT)));
 
         if($response->getBody() === false) {
             throw new \RuntimeException(json_last_error_msg(), json_last_error());
@@ -71,7 +62,7 @@ class Response implements ResponseInterface
         return $response->withStatus($status);
     }
 
-    public function withStatus(int $status, string $message = '')
+    public function withStatus($status, $message = '')
     {
         $clone = clone $this;
 
@@ -82,17 +73,10 @@ class Response implements ResponseInterface
         return $clone;
     }
 
-    public function withHeader($name, $value)
+    public function getReasonPhrase()
     {
-        $clone = clone $this;
-
-        $clone->headers[$name] = $value;
-
-        header(sprintf('%s: %s', $name, $value));
-
-        return $clone;
+        return $this->message;
     }
-
 
     public function __toString()
     {

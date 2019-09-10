@@ -4,11 +4,13 @@ namespace Mkoveni\Lani;
 
 use Mkoveni\Lani\Exceptions\ClassNotFoundException;
 use Mkoveni\Lani\DI \ {
-Container, Dependency
+    Container,
+    Dependency
 };
 use Mkoveni\Lani\Routing \ {
-Route, Router,
-Middleware\MiddlewareAwareTrait
+    Route,
+    Router,
+    Middleware\MiddlewareAwareTrait
 };
 use Mkoveni\Lani\Reflection \ {
     RFactory,
@@ -20,6 +22,7 @@ use Mkoveni\Lani\Exceptions\FileNotFoundException;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
 
 class App implements RequestHandlerInterface
 {
@@ -125,7 +128,7 @@ class App implements RequestHandlerInterface
         }
     }
 
-    public function run(RequestInterface $request)
+    public function run(ServerRequestInterface $request)
     {
         try {
 
@@ -135,31 +138,31 @@ class App implements RequestHandlerInterface
 
             $response = $this->process($route);
 
-            if (!$response instanceof ResponseInterface) { 
+            if (!$response instanceof ResponseInterface) {
 
                 throw new \RuntimeException(sprintf('Callable must return an instance of %s', ResponseInterface::class));
             }
 
-            $middleware =  new class($response) implements MiddlewareInterface {
+
+            $middleware =  new class ($response) implements MiddlewareInterface
+            {
 
                 protected $response;
 
                 public function __construct(ResponseInterface $response)
                 {
-                    $this->response = $response;    
+                    $this->response = $response;
                 }
 
-                public function process(RequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+                public function process(ServerRequestInterface $request, RequestHandlerInterface $handler):ResponseInterface
                 {
                     return $this->response;
                 }
             };
 
             $this->addMiddleToStack($middleware);
-            
-            echo $this->handle($request)->getBody();
 
-                
+            $this->respond($this->handle($request));
         } catch (\Exception $ex) {
 
             throw $ex;
@@ -222,6 +225,38 @@ class App implements RequestHandlerInterface
         }
 
         return $middleware->process($request, $this);
+    }
+
+    protected function respond(ResponseInterface $response)
+    {
+        if(headers_sent()) {
+            throw new \RuntimeException('The response has already been emitted.');
+        }
+        
+        /*Emit the server protocol+ status code + phrase first*/
+
+
+        header(sprintf('HTTP/%s: %d%s', 
+            $response->getProtocolVersion(), 
+            $response->getStatusCode(), 
+            $response->getReasonPhrase())
+        );
+
+        /*Emit response headers*/
+
+        
+        foreach($response->getHeaders() as $name => $headerValues)
+        {
+            foreach($headerValues as $value)
+            {
+                header(sprintf('%s: %s', $name, $value));
+            }
+        }
+
+         /*Emit response body*/
+
+         echo $response->getBody();
+
     }
 
 

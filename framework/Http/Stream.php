@@ -8,11 +8,15 @@ class Stream implements StreamInterface
 {
     protected $stream;
 
+    protected $size;
+
     protected $isWritable;
 
     protected $isReadable;
 
     protected $isSeekable;
+
+    protected $meta;
 
     protected $writeTypes = [
         'w' => true, 'w+' => true, 'rw' => true, 'r+' => true, 'x+' => true,
@@ -32,7 +36,7 @@ class Stream implements StreamInterface
     {
         if(is_string($data)) {
 
-            $data = $this->getResourceFromString($data);
+            $data = self::getResourceFromString($data);
         }
 
         return new static($data);
@@ -51,17 +55,30 @@ class Stream implements StreamInterface
     {
         $this->stream = $stream;
 
-        $meta = stream_get_meta_data($this);
+        $this->meta = stream_get_meta_data($this->stream);
 
-        $this->isReadable = $this->readTypes[$meta['mode']];
-        $this->isWritable = $this->writeTypes[$meta['mode']];
-        $this->isSeekable = $meta['seekable'];
+        $this->isReadable = $this->readTypes[$this->meta['mode']];
+        $this->isWritable = $this->writeTypes[$this->meta['mode']];
+        $this->isSeekable = $this->meta['seekable'];
     }
     
     public function detach()
     {
         $stream = $this->stream;
-        $stream
+        $this->stream = null;
+        $this->meta = null;
+        $this->size = null;
+        
+        return $stream;
+    }
+
+    public function eof()
+    {
+        if($this->stream){
+            return feof($this->stream);
+        }
+
+        return false;
     }
 
     public function getContents()
@@ -90,6 +107,32 @@ class Stream implements StreamInterface
         }
     }
 
+    public function getSize()
+    {
+        if($this->size) {
+            return $this->size;
+        }
+
+        if($this->stream) {
+            
+            if(($stats = fstat($this->stream)) && ($this->size = $stats['size']))
+            {
+                return $this->size;
+            }
+        }
+
+        return null;
+    }
+
+    public function tell()
+    {
+        if($this->stream){
+            return ftell($this->stream);
+        }
+
+        return false;
+    }
+
     public function isWritable()
     {
         return $this->isWritable;
@@ -105,6 +148,49 @@ class Stream implements StreamInterface
         return $this->isSeekable;
     }
 
+    public function getMetadata($key = null)
+    {
+        if($key && isset($this->meta[$key])) {
+
+            return $this->meta[$key];
+        }
+
+        if(!$this->stream) {
+            
+            return [];
+        }
+
+        return $this->meta = stream_get_meta_data($this->stream);
+    }
+
+    
+    protected static function getResourceFromString(string $data)
+    {
+        $resource = @fopen('php://temp', 'rw+');
+
+        @fwrite($resource, $data);
+
+        return $resource;
+    }
+
+    public function write($string)
+    {
+        
+    }
+
+    public function read($length)
+    {
+        
+    }
+
+    public function rewind()
+    {
+        if($this->stream) {
+
+            $this->seek(0);
+        }
+    }
+
     public function __toString()
     {
         if($this->stream) {
@@ -117,12 +203,4 @@ class Stream implements StreamInterface
         return '';
     }
 
-    protected function getResourceFromString(string $data)
-    {
-        $resource = @fopen('php://temp', 'rw+');
-
-        @fwrite($resource, $data);
-
-        return $resource;
-    }
 }
